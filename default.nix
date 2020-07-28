@@ -12,6 +12,8 @@ let
             text
             hlint
             p.ihp
+            http-conduit
+            xml
         ];
         otherDeps = p: with p; [
             # Native dependencies, e.g. imagemagick
