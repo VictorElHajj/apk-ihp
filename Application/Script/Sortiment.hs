@@ -4,15 +4,17 @@ import Application.Script.Prelude
 import Data.Maybe
 import Data.Functor
 import qualified Data.Text as Text
+import qualified Data.Text.Encoding as Encoding
 import qualified Data.Text.Read as Read
 import qualified Network.HTTP.Simple as Net
-import qualified Data.ByteString.Char8 as B8
 import qualified Text.XML.Light as XML
 
 run :: Script
 run = do
     putStrLn "Downloading report."
-    response <- Net.httpBS "https://www.systembolaget.se/api/assortment/products/xml" <&> Net.getResponseBody 
+    response <- Net.httpBS "https://www.systembolaget.se/api/assortment/products/xml" 
+        <&> Net.getResponseBody
+        <&> Encoding.decodeUtf8
     putStrLn "Parsing report."
     let xml = parseXML response
         articles = map buildArticle xml
@@ -23,7 +25,7 @@ run = do
     createMany articles
     putStrLn "Complete."
 
-parseXML :: B8.ByteString -> [XML.Element]
+parseXML :: Text -> [XML.Element]
 parseXML file = file
             |> XML.parseXMLDoc
             |> \case
@@ -64,7 +66,7 @@ buildArticle element = do
                             price = getFloat "Prisinklmoms"
                         newRecord @Article
                             |> set #originId (getInt "Artikelid")
-                            |> set #name (getText "Namn") 
+                            |> set #name (getText "Namn" ++ " " ++ getText "Namn2")
                             |> set #price price 
                             |> set #volume volume 
                             |> set #itemGroup (getText "Varugrupp") 
