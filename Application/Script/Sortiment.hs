@@ -11,11 +11,17 @@ import qualified Text.XML.Light as XML
 
 run :: Script
 run = do
+    putStrLn "Downloading report."
     response <- Net.httpBS "https://www.systembolaget.se/api/assortment/products/xml" <&> Net.getResponseBody 
+    putStrLn "Parsing report."
     let xml = parseXML response
         articles = map buildArticle xml
+    putStrLn "Deleting old records." 
+    old <- query @Article |> fetch
+    deleteRecords old
+    putStrLn "Creating new records."
     createMany articles
-    putStrLn "Complete"
+    putStrLn "Complete."
 
 parseXML :: B8.ByteString -> [XML.Element]
 parseXML file = file
@@ -65,4 +71,4 @@ buildArticle element = do
                             |> set #style (getText "Stil")
                             |> set #abv abv 
                             |> set #availability (getText "SortimentText") 
-                            |> set #apk (abv/100*volume/price) -- WIP (abv /100 * volume) / price
+                            |> set #apk (abv/100*volume/price)
