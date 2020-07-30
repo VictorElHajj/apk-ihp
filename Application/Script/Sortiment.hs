@@ -48,6 +48,21 @@ getArticleProperty name element = element
                 |> Text.pack
             _ -> "" -- This usually means the XML is like <Stil/> instead of <Stil>Style Example</Stil>, so "" is expected output
 
+-- Like the gerTarticleProperty but intended for elements that do not show up in all articles, defaults to empty string.
+getArticlePropertyMaybe :: Text -> XML.Element -> Text
+getArticlePropertyMaybe name element = element
+    |> XML.findChild (XML.unqual (Text.unpack name))
+    |> \case
+        Nothing -> "0.0" 
+        Just child -> child
+         |> XML.elContent
+         |> head
+         |> \case 
+            (Just (XML.Text text)) -> text
+                |> XML.cdData
+                |> Text.pack
+            _ -> "0.0" -- This usually means the XML is like <Stil/> instead of <Stil>Style Example</Stil>, so "" is expected output
+
 buildArticle element = do
                         let getInt p = getArticleProperty p element 
                                 |> Read.decimal
@@ -60,10 +75,16 @@ buildArticle element = do
                                 |> \case
                                     (Left e) -> "Failed to parse " ++ p ++ " as Float" |> error 
                                     (Right (v,_)) -> realToFrac v
+                            getMaybeFloat p = getArticlePropertyMaybe p element
+                                |> Text.filter (/='%')
+                                |> Read.double
+                                |> \case
+                                    (Left e) -> "Failed to parse " ++ p ++ " as Float" |> error 
+                                    (Right (v,_)) -> realToFrac v
                             getText p = getArticleProperty p element
                             abv = getFloat "Alkoholhalt"
                             volume = getFloat "Volymiml" 
-                            price = getFloat "Prisinklmoms"
+                            price = getFloat "Prisinklmoms" + getMaybeFloat "Pant"
                         newRecord @Article
                             |> set #originId (getInt "Artikelid")
                             |> set #name (getText "Namn" ++ " " ++ getText "Namn2")
