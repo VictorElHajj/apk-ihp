@@ -6,17 +6,6 @@ data IndexView = IndexView { articles :: [Article] }
 
 instance View IndexView ViewContext where
     html IndexView { .. } = [hsx|
-        <nav class="navbar navbar-expand navbar-dark bg-dark shadow">
-            <a class="navbar-brand" href="#">APK</a>
-            <ul class="navbar-nav">
-            <li class="nav-item active">
-                <a class="nav-link" href="#">Hem <span class="sr-only">(current)</span></a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">Om</a>
-            </li>
-            </ul>
-        </nav>
         <div class="table-responsive shadow">
             <table class="table table-striped table-hover table-borderless">
                 <thead class="thead-dark">
@@ -47,13 +36,19 @@ instance View IndexView ViewContext where
     |]
 
 renderArticle (order, article) = [hsx|
-    <tr>
+    <tr style="transform: rotate(0);">
         <th scope="row">{order}</th>
         <td>{get #apk article |> show |> Text.take 4}</td>
-        <td>{get #name article}</td>
+        <td><a href="https://www.systembolaget.se/{get #originId article}" class="stretched-link text-dark text-decoration-none">{get #name article}</a></td>
         <td>{get #itemGroup article ++ " "} <i class="text-secondary">{get #style article}</i></td>
-        <td>{get #abv article}%</td>
-        <td>{(get #volume article)/10}cl</td>
-        <td>{get #price article}kr</td>
+        <td>{get #abv article |> ppFloat}%</td>
+        <td>{((get #volume article)/10) |> ppFloat}cl</td>
+        <td>{get #price article |> ppFloat}kr</td>
     </tr>
 |]
+
+ppFloat :: (RealFrac f, Ord f, Show f) => f -> Text
+ppFloat f
+    | r < 0.01 = show i
+    | otherwise = show f
+    where (i, r) = properFraction f
