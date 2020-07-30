@@ -86,7 +86,7 @@ buildArticle element = do
                             volume = getFloat "Volymiml" 
                             price = getFloat "Prisinklmoms" + getMaybeFloat "Pant"
                         newRecord @Article
-                            |> set #originId (getInt "Artikelid")
+                            |> set #originId (getInt "nr")
                             |> set #name (getText "Namn" ++ " " ++ getText "Namn2")
                             |> set #price price 
                             |> set #volume volume 

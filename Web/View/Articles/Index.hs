@@ -39,13 +39,15 @@ renderArticle (order, article) = [hsx|
     <tr style="transform: rotate(0);">
         <th scope="row">{order}</th>
         <td>{get #apk article |> show |> Text.take 4}</td>
-        <td><a href="https://www.systembolaget.se/{get #originId article}" class="stretched-link text-dark text-decoration-none">{get #name article}</a></td>
+        <td><a href={systembolagetLink article} class="stretched-link text-dark text-decoration-none">{get #name article}</a></td>
         <td>{get #itemGroup article ++ " "} <i class="text-secondary">{get #style article}</i></td>
         <td>{get #abv article |> ppFloat}%</td>
         <td>{((get #volume article)/10) |> ppFloat}cl</td>
         <td>{get #price article |> ppFloat}kr</td>
     </tr>
 |]
+
+systembolagetLink article = "https://www.systembolaget.se/" ++ show (get #originId article) 
 
 ppFloat :: (RealFrac f, Ord f, Show f) => f -> Text
 ppFloat f
